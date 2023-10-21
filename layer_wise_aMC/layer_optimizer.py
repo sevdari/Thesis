@@ -35,7 +35,7 @@ class aMC(torch.optim.Optimizer):
             state['best_loss'] = None
         
         state['minibatch'] = minibatch
-        state['sigma'] = init_sigma
+        state['sigma'] = [init_sigma] * len(self._params)
         state['n_cr'] = [0] * len(self._params)
         state['mus'] = []
         for p in self._params:
@@ -43,7 +43,7 @@ class aMC(torch.optim.Optimizer):
 
     def sample_noise(self, i):
         state = self.state[self._params[0]]
-        noise = torch.normal(mean =  state['mus'][i], std = state['sigma'])
+        noise = torch.normal(mean =  state['mus'][i], std = state['sigma'][i])
         return noise
 
     def _add_noise(self, noise, i):
@@ -100,7 +100,7 @@ class aMC(torch.optim.Optimizer):
 
                 if state['n_cr'][i] == group['n_reset']:
                     state['mus'][i].zero_()
-
+                    state['sigma'][i] *= group['sigma_decay']
                     state['n_cr'][i] = 0
         
         return state['best_loss']
